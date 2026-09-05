@@ -1,11 +1,37 @@
+<div align="center">
+
 # Habab Tracker 🚀
 
-Secure and lightweight custom Discord bot designed for tracking invite links and managing community contest leaderboards for Habab Agency.
+Secure and lightweight custom Discord bot designed for tracking invite links and managing community contest leaderboards for **Habab Agency**.
 
-## Features
-- Secure invite tracking without requiring Administrator privileges.
-- Real-time event logging (`guildMemberAdd`, `inviteCreate`).
-- Community leaderboard commands (`!leaderboard`).
+[![Add to Discord](https://img.shields.io/badge/Add%20Habab%20Tracker-Invite%20Bot-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1545866509052813362)
+[![Support Server](https://img.shields.io/badge/Discord%20Server-Habab%20Agency-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/hababagency)
 
-## Security & Permissions
-Requires minimal permissions: `View Channels`, `Read Message History`, `View Audit Log`, `Manage Server`.
+</div>
+
+---
+
+## ⚡ Features
+
+* **Real-Time Invite Tracking**: Monitors `guildMemberAdd` and `inviteCreate` events instantly.
+* **Prefix Commands**: Clean and responsive standard prefix commands (`!leaderboard`, `!leaderboards`).
+* **Lightweight & Secure**: Built using modern `discord.js` architecture without bloated dependencies.
+
+---
+
+## 🛠️ How to Use
+
+1. Click **[Add Habab Tracker](https://discord.com/oauth2/authorize?client_id=1545866509052813362)** to invite the bot directly to your server.
+2. Use the `!leaderboard` or `!leaderboards` command in your server channels to view invite rankings.
+3. Need help or support? Join our community server: **[Habab Agency Discord](https://discord.gg/hababagency)**.
+
+---
+
+## 🔒 Security & Permissions
+
+The bot requires minimal and safe permissions to operate efficiently:
+`View Channels` • `Read Message History` • `View Audit Log` • `Manage Server`
+
+---
+
+<p align="center">Developed with 💻 by <a href="https://github.com/xloqia03">Baraa Habab</a></p>
