@@ -1,7 +1,7 @@
 <div align="center">
 
 <br>
-<img src="https://cdn.discordapp.com/app-icons/1545866509052813362/b4289244454e3f544844464646464646.png?size=256" width="120" height="120" style="border-radius: 50%;" alt="Habab Tracker Logo">
+<img src="https://cdn.discordapp.com/attachments/1415449736059555981/1545876613697245276/6444ed11-1987-4e92-b99e-c57f68466f89.jpg?ex=6a9dbd49&is=6a9c6bc9&hm=9781ff579eb1dfef1a819e0a9e8c6cdd27df2802fcf1aeedb60b0d8b242acabe&" width="120" height="120" style="border-radius: 50%;" alt="Habab Tracker Logo">
 
 # Habab Tracker 🚀
 
