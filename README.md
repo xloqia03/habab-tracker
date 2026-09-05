@@ -1,5 +1,8 @@
 <div align="center">
 
+<br>
+<img src="https://cdn.discordapp.com/app-icons/1545866509052813362/b4289244454e3f544844464646464646.png?size=256" width="120" height="120" style="border-radius: 50%;" alt="Habab Tracker Logo">
+
 # Habab Tracker 🚀
 
 Secure and lightweight custom Discord bot designed for tracking invite links and managing community contest leaderboards for **Habab Agency**.
