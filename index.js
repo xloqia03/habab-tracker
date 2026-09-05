@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Partials } = require('discord.js');
+const { Client, GatewayIntentBits, Collection } = require('discord.js');
 require('dotenv').config();
 
 const client = new Client({
@@ -6,83 +6,97 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildInvites,
-    ],
-    partials: [Partials.GuildMember]
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
 });
 
-const invitesCache = new Map();
-const userInvites = new Map();
+// تخزين الدعوات مؤقتاً لمقارنتها عند دخول أي عضو جديد
+const invitesTracker = new Map();
+
+// تخزين دعوات الأعضاء محلياً (يمكن ربطه بقاعدة بيانات لاحقاً)
+const memberInvites = new Map(); // inviterId -> count
+
+async function cacheInvites(guild) {
+    try {
+        const firstInvites = await guild.invites.fetch();
+        invitesTracker.set(guild.id, new Map(firstInvites.map(invite => [invite.code, invite.uses])));
+    } catch (err) {
+        console.error(`Could not fetch invites for ${guild.name}:`, err);
+    }
+}
 
 client.once('ready', async () => {
-    console.log(`[✔] Logged in as ${client.user.tag}!`);
-    for (const [guildId, guild] of client.guilds.cache) {
-        try {
-            const firstInvites = await guild.invites.fetch();
-            invitesCache.set(guildId, new Map(firstInvites.map(inv => [inv.code, inv.uses])));
-        } catch (err) {
-            console.log(`[!] Cannot fetch invites for guild: ${guild.name}`);
-        }
+    console.log(`Logged in as ${client.user.tag}! Habab Tracker is online.`);
+    for (const guild of client.guilds.cache.values()) {
+        await cacheInvites(guild);
     }
 });
 
-client.on('inviteCreate', async (invite) => {
-    const guildInvites = invitesCache.get(invite.guild.id) || new Map();
-    guildInvites.set(invite.code, invite.uses);
-    invitesCache.set(invite.guild.id, guildInvites);
+client.on('guildCreate', async guild => {
+    await cacheInvites(guild);
 });
 
-client.on('inviteDelete', async (invite) => {
-    const guildInvites = invitesCache.get(invite.guild.id) || new Map();
-    guildInvites.delete(invite.code);
-    invitesCache.set(invite.guild.id, guildInvites);
+client.on('inviteCreate', async invite => {
+    const guildInvites = invitesTracker.get(invite.guild.id);
+    if (guildInvites) {
+        guildInvites.set(invite.code, invite.uses);
+    }
 });
 
-client.on('guildMemberAdd', async (member) => {
+client.on('inviteDelete', async invite => {
+    const guildInvites = invitesTracker.get(invite.guild.id);
+    if (guildInvites) {
+        guildInvites.delete(invite.code);
+    }
+});
+
+client.on('guildMemberAdd', async member => {
     try {
-        const guild = member.guild;
-        const cachedInvites = invitesCache.get(guild.id) || new Map();
-        const newInvites = await guild.invites.fetch();
-
+        const cachedInvites = invitesTracker.get(member.guild.id);
+        const newInvites = await member.guild.invites.fetch();
+        
         let usedInvite = null;
-        for (const [code, inv] of newInvites) {
-            const oldUses = cachedInvites.get(code) || 0;
-            if (inv.uses > oldUses) {
-                usedInvite = inv;
+        for (const [code, invite] of newInvites) {
+            const cachedUses = cachedInvites?.get(code) || 0;
+            if (invite.uses > cachedUses) {
+                usedInvite = invite;
                 break;
             }
         }
 
-        invitesCache.set(guild.id, new Map(newInvites.map(inv => [inv.code, inv.uses])));
+        // تحديث الكاش
+        invitesTracker.set(member.guild.id, new Map(newInvites.map(invite => [invite.code, invite.uses])));
 
-        if (usedInvite) {
+        if (usedInvite && usedInvite.inviter) {
             const inviterId = usedInvite.inviter.id;
-            const currentCount = userInvites.get(inviterId) || 0;
-            userInvites.set(inviterId, currentCount + 1);
-            console.log(`[+] Member ${member.user.tag} joined using invite code ${usedInvite.code} created by ${usedInvite.inviter.tag}. Total: ${currentCount + 1}`);
+            const currentCount = memberInvites.get(inviterId) || 0;
+            memberInvites.set(inviterId, currentCount + 1);
         }
     } catch (err) {
         console.error('Error tracking invite:', err);
     }
 });
 
-client.on('messageCreate', async (message) => {
+client.on('messageCreate', async message => {
     if (message.author.bot) return;
 
-    if (message.content === '!leaderboard' || message.content === '!ترتيب') {
-        if (userInvites.size === 0) {
-            return message.reply('لا توجد دعوات مسجلة حتى الآن!');
+    if (message.content === '!leaderboard' || message.content === '!leaderboards') {
+        if (memberInvites.size === 0) {
+            return message.reply('🏆 **Habab Agency Invite Leaderboard**\nNo invites tracked yet!');
         }
 
-        const sortedInvites = [...userInvites.entries()].sort((a, b) => b[1] - a[1]);
-        let desc = '🏆 **لوحة صدارة مسابقة Habab Quest:**\n\n';
-        
+        const sortedInvites = [...memberInvites.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+        let description = '';
+
         let rank = 1;
-        for (const [userId, count] of sortedInvites.slice(0, 10)) {
-            desc += `${rank}. <@${userId}> ── **${count}** دعوات\n`;
+        for (const [inviterId, count] of sortedInvites) {
+            const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🔹';
+            description += `${medal} <@${inviterId}> — **${count}** invites\n`;
             rank++;
         }
 
-        message.channel.send(desc);
+        message.reply(`🏆 **Habab Agency Invite Leaderboard**\n\n${description}`);
     }
 });
 
